@@ -4,6 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Bunga 3D Parallax</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@600&family=Playfair+Display:ital@1&display=swap">
 <style>
 :root{color-scheme:dark;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
 *{box-sizing:border-box}
@@ -38,6 +39,14 @@ html,body{height:100%;margin:0;overflow:hidden;background:#0b0618;font-family:sy
 #btn{position:fixed;left:50%;bottom:calc(28px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);z-index:5;border:1px solid rgba(255,255,255,.3);background:rgba(255,255,255,.1);backdrop-filter:blur(8px);color:#fff;padding:12px 24px;border-radius:999px;font-size:15px;cursor:pointer}
 #btn:hover{background:rgba(255,255,255,.2)}
 .fp{position:absolute;left:0;top:0;border-radius:50% 50% 45% 45%/85% 85% 18% 18%;background:linear-gradient(to top,#d81b72,#ff6fae 45%,#ffc4de);box-shadow:inset 0 -6px 10px rgba(120,0,60,.3),0 0 12px rgba(255,100,170,.45);opacity:0;will-change:transform}
+#msg{position:fixed;left:0;right:0;bottom:calc(92px + env(safe-area-inset-bottom,0px));z-index:4;text-align:center;pointer-events:none;padding:0 20px;color:#fff}
+#msg::before{content:"";position:absolute;left:50%;top:50%;width:min(94vw,680px);height:190%;transform:translate(-50%,-50%);background:radial-gradient(ellipse,rgba(11,6,24,.7),rgba(11,6,24,0) 70%);z-index:-1}
+#msg .l1{font-family:"Dancing Script","Snell Roundhand","Segoe Script",cursive;font-size:clamp(34px,8.5vw,66px);line-height:1.15;color:#ffe3f1;text-shadow:0 0 22px rgba(255,110,175,.75),0 2px 10px rgba(0,0,0,.4)}
+#msg .l2{margin-top:10px;font-family:"Playfair Display",Georgia,serif;font-style:italic;font-size:clamp(14px,3.8vw,21px);letter-spacing:.04em;color:rgba(255,238,246,.93);text-shadow:0 1px 8px rgba(0,0,0,.5)}
+#msg .w{display:inline-block;white-space:nowrap}
+#msg .ch{display:inline-block;opacity:0;transform:translateY(20px) scale(.8);filter:blur(6px);transition:opacity 1s,transform 1.2s cubic-bezier(.2,1.3,.3,1),filter 1s;transition-delay:var(--d)}
+#msg.show .ch{opacity:1;transform:none;filter:none}
+#msg:not(.show) .ch{transition-delay:0s}
 #hint{position:fixed;top:calc(18px + env(safe-area-inset-top,0px));width:100%;text-align:center;color:rgba(255,255,255,.55);font-size:13px;letter-spacing:.04em;z-index:5;pointer-events:none}
 </style>
 </head>
@@ -59,6 +68,7 @@ html,body{height:100%;margin:0;overflow:hidden;background:#0b0618;font-family:sy
     </div>
   </div>
 </div>
+<div id="msg"></div>
 <button id="btn">✿ Mekar lagi</button>
 <script>
 const $=s=>document.querySelector(s);
@@ -120,6 +130,19 @@ function tick(t){
 requestAnimationFrame(tick);
 
 // Bloom
+// Greeting text
+const msg=$('#msg');let msgTimer;
+[['l1','Happy Monday, baby ✿'],['l2','I hope u have a spirited day today']].forEach(([c,t],k)=>{
+  const row=document.createElement('div');row.className=c;let n=0;
+  t.split(' ').forEach((w,wi,arr)=>{
+    const wd=document.createElement('span');wd.className='w';
+    [...w].forEach(ch=>{const s=document.createElement('span');s.className='ch';s.textContent=ch;s.style.setProperty('--d',(k*1.3+n++*.05).toFixed(2)+'s');wd.appendChild(s)});
+    row.appendChild(wd);if(wi<arr.length-1)row.appendChild(document.createTextNode(' '));
+  });
+  msg.appendChild(row);
+});
+(function mv(){msg.style.transform='translate3d('+(cx*-14).toFixed(1)+'px,'+(cy*-8).toFixed(1)+'px,0)';requestAnimationFrame(mv)})();
+
 // Falling petals
 const fall=$('#fall'),fps=[];let falling=false,nextSpawn=0,last=0,fallTimer;
 function spawn(){
@@ -147,10 +170,11 @@ function fallLoop(t){
 requestAnimationFrame(fallLoop);
 
 function bloom(){
-  world.classList.add('reset');world.classList.remove('open');falling=false;clearTimeout(fallTimer);
+  msg.classList.remove('show');clearTimeout(msgTimer);world.classList.add('reset');world.classList.remove('open');falling=false;clearTimeout(fallTimer);
   void world.offsetWidth;world.classList.remove('reset');void world.offsetWidth;
   setTimeout(()=>world.classList.add('open'),120);
   fallTimer=setTimeout(()=>{falling=true},13000);
+  msgTimer=setTimeout(()=>msg.classList.add('show'),9500);
 }
 $('#btn').addEventListener('click',bloom);
 setTimeout(bloom,250);
